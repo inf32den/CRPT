@@ -1,0 +1,29 @@
+---
+#ЗА ПЕРЕМЕННЫМИ ЕДЕМ В ИНВЕНТАРЬ
+- name: Change pass, create user, and change SSH port
+  hosts: xxx-server
+  become: yes
+
+  tasks:
+    - name: chpas
+      command: echo 'user:new_password' | chpasswd
+
+    - name: new user
+      user:
+        name: new_user
+        createhome: yes
+        shell: /bin/bash
+        password: "{{ 'new_password' | password_hash('sha512') }}"
+
+    - name: SSH port
+      lineinfile:
+        dest: /etc/ssh/sshd_config
+        regexp: '^#?Port 22'
+        line: "Port new_port"
+      notify: Restart SSH service
+
+  handlers:
+    - name: Restart SSH service
+      service:
+        name: ssh
+        state: restarted
